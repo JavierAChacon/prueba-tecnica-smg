@@ -1,160 +1,104 @@
-<h1 align="center" style="position: relative;">
-  <br>
-    <img src="./assets/shoppy-x-ray.svg" alt="logo" width="200">
-  <br>
-  Shopify Skeleton Theme
-</h1>
+# Prueba Técnica SMG – Shopify Custom Theme
+Este repositorio contiene el desarrollo de un tema personalizado para Shopify enfocado en la venta de servicios digitales, cumpliendo los siguientes requerimientos:
 
-A minimal, carefully structured Shopify theme designed to help you quickly get started. Designed with modularity, maintainability, and Shopify's best practices in mind.
+- Página de inicio que muestra una colección de servicios.
+- Integración AJAX para añadir productos al carrito con un regalo incluido.
+- Lógica de carrito que restringe la compra a un solo servicio por vez.
+- Estilo visual minimalista y adaptado al diseño del tema base.
 
-<p align="center">
-  <a href="./LICENSE.md"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
-  <a href="./actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Shopify/skeleton-theme/actions/workflows/ci.yml/badge.svg"></a>
-</p>
+---
 
-## Getting started
+## 🚀 Instrucciones de uso
 
-### Prerequisites
-
-Before starting, ensure you have the latest Shopify CLI installed:
-
-- [Shopify CLI](https://shopify.dev/docs/api/shopify-cli) – helps you download, upload, preview themes, and streamline your workflows
-
-If you use VS Code:
-
-- [Shopify Liquid VS Code Extension](https://shopify.dev/docs/storefronts/themes/tools/shopify-liquid-vscode) – provides syntax highlighting, linting, inline documentation, and auto-completion specifically designed for Liquid templates
-
-### Clone
-
-Clone this repository using Git or Shopify CLI:
-
+1. Clona el repositorio:
 ```bash
-git clone git@github.com:Shopify/skeleton-theme.git
-# or
-shopify theme init
+git clone https://github.com/JavierAChacon/prueba-tecnica-smg.git
 ```
-
-### Preview
-
-Preview this theme using Shopify CLI:
-
+2. Abre el proyecto en tu editor y conéctalo a tu tienda Shopify con el Shopify CLI.
+3. Para probar localmente:
 ```bash
 shopify theme dev
 ```
+---
 
-## Theme architecture
+## 🧩 Documentación técnica
 
-```bash
-.
-├── assets          # Stores static assets (CSS, JS, images, fonts, etc.)
-├── blocks          # Reusable, nestable, customizable UI components
-├── config          # Global theme settings and customization options
-├── layout          # Top-level wrappers for pages (layout templates)
-├── locales         # Translation files for theme internationalization
-├── sections        # Modular full-width page components
-├── snippets        # Reusable Liquid code or HTML fragments
-└── templates       # Templates combining sections to define page structures
+### 🧱 Esquema (schema) de la página de productos
+El archivo `servicios.liquid` contiene el schema necesario para configurar visualmente la página en el editor de Shopify:
+
+```liquid
+{% schema %}
+{
+  "name": "Servicios",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "servicios_collection",
+      "label": "Colección de servicios"
+    },
+    {
+      "type": "product",
+      "id": "producto_regalo",
+      "label": "Producto de regalo"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Servicios"
+    }
+  ]
+}
+{% endschema %}
 ```
 
-To learn more, refer to the [theme architecture documentation](https://shopify.dev/docs/storefronts/themes/architecture).
+### ⚙️ AJAX Add to Cart
+En el archivo `servicios.liquid` se implementó un flujo de compra con JavaScript que:
 
-### Templates
+- Limpia el carrito (limitando la compra a 1 servicio).
+- Agrega el servicio seleccionado.
+- Agrega automáticamente el producto de regalo.
 
-[Templates](https://shopify.dev/docs/storefronts/themes/architecture/templates#template-types) control what's rendered on each type of page in a theme.
+```javascript
+await fetch('/cart/clear.js', { method: 'POST' });
 
-The Skeleton Theme scaffolds [JSON templates](https://shopify.dev/docs/storefronts/themes/architecture/templates/json-templates) to make it easy for merchants to customize their store.
+await fetch('/cart/add.js', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ id: variantId, quantity: 1 }),
+});
 
-None of the template types are required, and not all of them are included in the Skeleton Theme. Refer to the [template types reference](https://shopify.dev/docs/storefronts/themes/architecture/templates#template-types) for a full list.
+await fetch('/cart/add.js', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ id: regaloId, quantity: 1 }),
+});
+```
 
-### Sections
+### ❌ Restricción de múltiples servicios
+La lógica del carrito impide que el usuario agregue más de un servicio a la vez. Esto se logra utilizando la ruta:
+```javascript
+await fetch('/cart/clear.js', { method: 'POST' });
+```
+Cada vez que un usuario selecciona un nuevo servicio, el carrito se limpia antes de agregar el producto y su respectivo regalo. Esto garantiza:
 
-[Sections](https://shopify.dev/docs/storefronts/themes/architecture/sections) are Liquid files that allow you to create reusable modules of content that can be customized by merchants. They can also include blocks which allow merchants to add, remove, and reorder content within a section.
+✅ Que el usuario solo tenga un servicio activo por vez en el carrito.
 
-Sections are made customizable by including a `{% schema %}` in the body. For more information, refer to the [section schema documentation](https://shopify.dev/docs/storefronts/themes/architecture/sections/section-schema).
+🎁 Que cada servicio venga acompañado de su producto de regalo.
 
-### Blocks
+🔒 Que el regalo no pueda eliminarse directamente desde el carrito.
 
-[Blocks](https://shopify.dev/docs/storefronts/themes/architecture/blocks) let developers create flexible layouts by breaking down sections into smaller, reusable pieces of Liquid. Each block has its own set of settings, and can be added, removed, and reordered within a section.
+### 📂 Estructura relevante
+```bash
+/sections
+  └── servicios.liquid        # Página principal de productos
+/templates
+  └── index.liquid            # Página de inicio
+/snippets
+  └── cart.liquid             # Carrito con lógica condicional
+```
 
-Blocks are made customizable by including a `{% schema %}` in the body. For more information, refer to the [block schema documentation](https://shopify.dev/docs/storefronts/themes/architecture/blocks/theme-blocks/schema).
+### 🔐 Requisitos de CI y CLA
 
-## Schemas
-
-When developing components defined by schema settings, we recommend these guidelines to simplify your code:
-
-- **Single property settings**: For settings that correspond to a single CSS property, use CSS variables:
-
-  ```liquid
-  <div class="collection" style="--gap: {{ block.settings.gap }}px">
-    ...
-  </div>
-
-  {% stylesheet %}
-    .collection {
-      gap: var(--gap);
-    }
-  {% endstylesheet %}
-
-  {% schema %}
-  {
-    "settings": [{
-      "type": "range",
-      "label": "gap",
-      "id": "gap",
-      "min": 0,
-      "max": 100,
-      "unit": "px",
-      "default": 0,
-    }]
-  }
-  {% endschema %}
-  ```
-
-- **Multiple property settings**: For settings that control multiple CSS properties, use CSS classes:
-
-  ```liquid
-  <div class="collection {{ block.settings.layout }}">
-    ...
-  </div>
-
-  {% stylesheet %}
-    .collection--full-width {
-      /* multiple styles */
-    }
-    .collection--narrow {
-      /* multiple styles */
-    }
-  {% endstylesheet %}
-
-  {% schema %}
-  {
-    "settings": [{
-      "type": "select",
-      "id": "layout",
-      "label": "layout",
-      "values": [
-        { "value": "collection--full-width", "label": "t:options.full" },
-        { "value": "collection--narrow", "label": "t:options.narrow" }
-      ]
-    }]
-  }
-  {% endschema %}
-  ```
-
-## CSS & JavaScript
-
-For CSS and JavaScript, we recommend using the [`{% stylesheet %}`](https://shopify.dev/docs/api/liquid/tags#stylesheet) and [`{% javascript %}`](https://shopify.dev/docs/api/liquid/tags/javascript) tags. They can be included multiple times, but the code will only appear once.
-
-### `critical.css`
-
-The Skeleton Theme explicitly separates essential CSS necessary for every page into a dedicated `critical.css` file.
-
-## Contributing
-
-We're excited for your contributions to the Skeleton Theme! This repository aims to remain as lean, lightweight, and fundamental as possible, and we kindly ask your contributions to align with this intention.
-
-Visit our [CONTRIBUTING.md](./CONTRIBUTING.md) for a detailed overview of our process, guidelines, and recommendations.
-
-## License
-
-Skeleton Theme is open-sourced under the [MIT](./LICENSE.md) License.
+- Se utiliza `theme-check` como validación de CI.
+- CLA configurado para confirmar contribuciones firmadas.
+- GitHub Actions habilitadas en `.github/workflows`.
