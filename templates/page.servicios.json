@@ -1,0 +1,10 @@
+{
+  "name": "Página de Servicios",
+  "sections": {
+    "main": {
+      "type": "servicios",
+      "settings": {}
+    }
+  },
+  "order": ["main"]
+}

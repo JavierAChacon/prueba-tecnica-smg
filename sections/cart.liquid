@@ -1,0 +1,107 @@
+<form action="{{ routes.cart_url }}" method="post" novalidate>
+  {% if cart.item_count > 0 %}
+    <table class="cart-table">
+      {% for item in cart.items %}
+        <tr class="cart-item">
+          <td class="cart-image">
+            <img 
+              src="{{ item.image | image_url: width: 100 }}" 
+              alt="{{ item.product.title | escape }}" 
+              width="100" height="100"
+            >
+          </td>
+          <td class="cart-title">
+            {{ item.product.title }}
+          </td>
+          <td class="cart-quantity">
+            <span class="fixed-qty">1</span>
+          </td>
+          <td class="cart-remove">
+            <button 
+              type="button" 
+              class="remove-btn" 
+              onclick="eliminarTodoElCarrito()"
+            >
+              Eliminar
+            </button>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+
+    <div class="cart-summary">
+      <p><strong>Subtotal:</strong> {{ cart.total_price | money }}</p>
+      <a href="{{ routes.checkout_url }}" class="checkout-btn">Proceder al pago</a>
+    </div>
+  {% else %}
+    <p>Tu carrito está vacío.</p>
+  {% endif %}
+</form>
+
+<script>
+  function eliminarTodoElCarrito() {
+    fetch('/cart/clear.js', {
+      method: 'POST'
+    }).then(() => location.reload());
+  }
+</script>
+
+<style>
+  .cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+  }
+
+  .cart-item {
+    border-bottom: 1px solid #ddd;
+  }
+
+  .cart-image img {
+    border-radius: 0.25rem;
+  }
+
+  .cart-title {
+    font-weight: 600;
+    padding: 0.5rem;
+  }
+
+  .fixed-qty {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: #f4f4f4;
+    border-radius: 0.25rem;
+    font-weight: bold;
+  }
+
+  .remove-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .remove-btn:hover {
+    background-color: #c0392b;
+  }
+
+  .cart-summary {
+    text-align: right;
+    margin-top: 1rem;
+  }
+
+  .checkout-btn {
+    background-color: var(--color-button);
+    color: var(--color-button-text);
+    padding: 0.7rem 1.2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  .checkout-btn:hover {
+    background-color: var(--color-button-hover);
+  }
+</style>
